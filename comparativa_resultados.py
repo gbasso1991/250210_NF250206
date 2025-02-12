@@ -148,6 +148,18 @@ ciclos_2025_B.sort()
 labels_2025_B = ['N1_108_'+os.path.split(s)[-1].split('_')[1].split('dA')[0] for s in ciclos_2025_B]
 print(f'Cargados {len(ciclos_2025_B)} ciclos del directorio {dir_2025_B}')
 
+dir_2025_C=os.path.join('..','250212_NF250211_repeticion','108kHz_2_to_8')
+ciclos_2025_C = glob(os.path.join(dir_2025_C,'**', '*ciclo_promedio*'),recursive=True)
+ciclos_2025_C.sort()
+labels_2025_C = ['N1_108_'+os.path.split(s)[-1].split('_')[1].split('dA')[0] for s in ciclos_2025_C]
+print(f'Cargados {len(ciclos_2025_C)} ciclos del directorio {dir_2025_C}')
+
+dir_2025_D=os.path.join('..','250212_NF250211_repeticion','108kHz_8_to_15')
+ciclos_2025_D = glob(os.path.join(dir_2025_D,'**', '*ciclo_promedio*'),recursive=True)
+ciclos_2025_D.sort()
+labels_2025_D = ['N1_108_'+os.path.split(s)[-1].split('_')[1].split('dA')[0] for s in ciclos_2025_D]
+print(f'Cargados {len(ciclos_2025_D)} ciclos del directorio {dir_2025_D}')
+
 #%% Levanto archivos resultados
 res_2024 = glob(os.path.join(dir_2024,'**','*resultados*'),recursive=True)
 res_2024.sort()
@@ -161,9 +173,25 @@ res_2025_B = glob(os.path.join(dir_2025_B,'**','*resultados*'),recursive=True)
 res_2025_B.sort()
 print(f'Cargados {len(res_2025_B)} resultados del directorio {dir_2025_B}')
 
+res_2025_C = glob(os.path.join(dir_2025_C,'**','*resultados*'),recursive=True)
+res_2025_C.sort()
+print(f'Cargados {len(res_2025_C)} resultados del directorio {dir_2025_C}')
+
+res_2025_D = glob(os.path.join(dir_2025_D,'**','*resultados*'),recursive=True)
+res_2025_D.sort()
+print(f'Cargados {len(res_2025_D)} resultados del directorio {dir_2025_D}')
+
+#%%concateno C y D
+
+ciclos_2025_C=ciclos_2025_C+ciclos_2025_D
+labels_2025_C=labels_2025_C+ labels_2025_D
+res_2025_C=res_2025_C+res_2025_D
+
 
 #%% Ploteo ciclos
-fig, (ax0,ax1,ax2) = plt.subplots(ncols=3,figsize=(15,5), constrained_layout=True,sharey=True)
+fig, ((ax0,ax1),(ax2,ax3)) = plt.subplots(nrows=2,ncols=2,figsize=(12,10), constrained_layout=True,sharey=True)
+
+
 
 for i,p in enumerate(ciclos_2024):
     _,_,_,H,M,_=lector_ciclos(p)
@@ -176,6 +204,10 @@ for i,p in enumerate(ciclos_2025_A):
 for i,p in enumerate(ciclos_2025_B):
     _,_,_,H,M,_=lector_ciclos(p)
     ax2.plot(H,M,label=labels_2025_B[i])
+    
+for i,p in enumerate(ciclos_2025_C):
+    _,_,_,H,M,_=lector_ciclos(p)
+    ax3.plot(H,M,label=labels_2025_C[i])
 
     
 for a in [ax0,ax1,ax2]:    
@@ -184,9 +216,10 @@ for a in [ax0,ax1,ax2]:
     #a.legend(ncol=1)
     a.set_xlabel('H (A/m)')
 
-ax0.set_title('2024')
-ax.set_title('2025')
-    
+# ax0.set_title('2024')
+# ax1.set_title('2025')
+# ax2.set_title('2025')
+# ax1.set_title('2025')
 plt.suptitle('NF241126 @Citrato - N1 - 108kHz')
 plt.savefig('Comparativa_NF_Citrato_108kHz', dpi=200, facecolor='w')
 plt.show()   
@@ -226,6 +259,19 @@ for path in res_2025_B:
     Hc_2025_B_err.append(np.std(Hc))
     H_max_2025_B.append(np.mean(campo_max)/1000)
  
+ 
+(SAR_2025_C,SAR_2025_C_err,tau_2025_C,tau_2025_C_err,Hc_2025_C,Hc_2025_C_err,H_max_2025_C)=([],[],[],[],[],[],[])
+for path in res_2025_C:
+    _,_,_,_,_,Hc,campo_max,_,_,_,_,_,SAR,tau, _= lector_resultados(path)
+    SAR_2025_C.append(np.mean(SAR))
+    SAR_2025_C_err.append(np.std(SAR))
+    tau_2025_C.append(np.mean(tau))
+    tau_2025_C_err.append(np.std(tau))
+    Hc_2025_C.append(np.mean(Hc))
+    Hc_2025_C_err.append(np.std(Hc))
+    H_max_2025_C.append(np.mean(campo_max)/1000) 
+    
+    
 #%% SAR vs Hmax
 
 fig,ax=plt.subplots(ncols=1,figsize=(7,5),sharey=True,constrained_layout=True)
@@ -233,6 +279,7 @@ fig,ax=plt.subplots(ncols=1,figsize=(7,5),sharey=True,constrained_layout=True)
 ax.errorbar(x=H_max_2024,y=SAR_2024,yerr=SAR_2024_err,capsize=5,fmt='.-',label='2024')
 ax.errorbar(x=H_max_2025_A,y=SAR_2025_A,yerr=SAR_2025_A_err,capsize=5,fmt='.-',label='2025 A')
 ax.errorbar(x=H_max_2025_B,y=SAR_2025_B,yerr=SAR_2025_B_err,capsize=5,fmt='.-',label='2025 B')
+ax.errorbar(x=H_max_2025_C,y=SAR_2025_C,yerr=SAR_2025_C_err,capsize=5,fmt='.-',label='2025 C')
 
 ax.set_title('108 kHz')
 ax.set_ylabel('SAR (W/g)')    
@@ -250,7 +297,7 @@ fig2,ax=plt.subplots(ncols=1,figsize=(7,5),sharey=True,constrained_layout=True)
 ax.errorbar(x=H_max_2024,y=tau_2024,yerr=tau_2024_err,capsize=5,fmt='.-',label='2024')
 ax.errorbar(x=H_max_2025_A,y=tau_2025_A,yerr=tau_2025_A_err,capsize=5,fmt='.-',label='2025 A')
 ax.errorbar(x=H_max_2025_B,y=tau_2025_B,yerr=tau_2025_B_err,capsize=5,fmt='.-',label='2025 B')
-
+ax.errorbar(x=H_max_2025_C,y=tau_2025_C,yerr=tau_2025_C_err,capsize=5,fmt='.-',label='2025 C')
 ax.set_title('108 kHz')
 ax.set_ylabel(r'$\tau$ (ns)')    
     
@@ -265,6 +312,8 @@ fig2,ax=plt.subplots(ncols=1,figsize=(7,5),sharey=True,constrained_layout=True)
 ax.errorbar(x=H_max_2024,y=Hc_2024,yerr=Hc_2024_err,capsize=5,fmt='.-',label='2024')
 ax.errorbar(x=H_max_2025_A,y=Hc_2025_A,yerr=Hc_2025_A_err,capsize=5,fmt='.-',label='2025 A')
 ax.errorbar(x=H_max_2025_B,y=Hc_2025_B,yerr=Hc_2025_B_err,capsize=5,fmt='.-',label='2025 B')
+ax.errorbar(x=H_max_2025_C,y=Hc_2025_C,yerr=Hc_2025_C_err,capsize=5,fmt='.-',label='2025 C')
+
 ax.set_title('100 kHz')
 ax.set_ylabel('H$_c$ (kA/m)')    
     
